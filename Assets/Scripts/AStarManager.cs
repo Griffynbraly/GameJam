@@ -59,12 +59,12 @@ public class AStarManager : MonoBehaviour
 
             foreach (Node connectedNode in currentNode.connections)
             {
-                float heldGScore = currentNode.gScore + Vector2.Distance(currentNode.transform.position, connectedNode.transform.position);
+                float tentativeGScore = currentNode.gScore + Vector2.Distance(currentNode.transform.position, connectedNode.transform.position);
 
-                if (heldGScore < currentNode.gScore)
+                if (tentativeGScore < connectedNode.gScore)
                 {
                     connectedNode.cameFrom = currentNode;
-                    connectedNode.gScore = heldGScore;
+                    connectedNode.gScore = tentativeGScore;
                     connectedNode.hScore = Vector2.Distance(connectedNode.transform.position, end.transform.position);
 
                     if (!openSet.Contains(connectedNode))
@@ -73,8 +73,14 @@ public class AStarManager : MonoBehaviour
                     }
                 }
             }
+
         }
 
         return null;
+    }
+
+    public Node[] NodesInScene()
+    {
+        return FindObjectsByType<Node>(FindObjectsSortMode.None);
     }
 }
