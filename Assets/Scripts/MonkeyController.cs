@@ -15,7 +15,7 @@ public class MonkeyController : MonoBehaviour
         Idle,
         Mayhem,
         Interacting,
-        Hungry,
+        Hungry
     }
 
     public StateMachine currentState;
@@ -61,22 +61,12 @@ public class MonkeyController : MonoBehaviour
             currentState = StateMachine.Hungry;
             path.Clear();
         }
-
-        Debug.Log("Path incoming");
+        
         CreatePath();
         
     }
-    [System.Obsolete]
     void Idle()
     {
-        if (path != null)
-        {
-            if (path.Count == 0)
-            {
-                path = AStarManager.instance.GeneratePath(currentNode, AStarManager.instance.NodesInScene()[Random.Range(0, AStarManager.instance.NodesInScene().Length)]);
-                Debug.Log("path = idle");
-            }
-        }
        
     }
     void Interacting()
@@ -87,13 +77,31 @@ public class MonkeyController : MonoBehaviour
     [System.Obsolete]
     void Mayhem()
     {
-        if (path != null)
+
+        path = new List<Node>
         {
-            if (path.Count == 0)
+            currentNode, // Start position
+            AStarManager.instance.NodesInScene()[2], // Some test node
+        };
+
+        if (path != null || path.Count == 0)
+        {
+            Debug.Log($"Trying to find a path from {currentNode.name} to {AStarManager.instance.NodesInScene()[fakeEnd].name}");
+            //path = AStarManager.instance.GeneratePath(currentNode, AStarManager.instance.NodesInScene()[fakeEnd]);
+
+            if (path == null)
             {
-                path = AStarManager.instance.GeneratePath(currentNode, AStarManager.instance.NodesInScene()[fakeEnd]);
-                Debug.Log("path = mayhem");
+                Debug.LogError("A* failed! Path is NULL.");
             }
+            else if (path.Count == 0)
+            {
+                Debug.LogError("A* returned an EMPTY path.");
+            }
+            else
+            {
+                Debug.Log($"Path found: {string.Join(" -> ", path.ConvertAll(n => n.name))}");
+            }
+
         }
     }
     void Hungry()
@@ -106,17 +114,23 @@ public class MonkeyController : MonoBehaviour
     void CreatePath()
     {
         Debug.Log("Im bouta make a pathhh");
-
-        if (path == null || path.Count == 0)
+        if (path.Count == 0)
         {
-            Debug.LogWarning("No path available in CreatePath().");
+            Debug.LogError("CreatePath() ERROR: path is EMPTY.");
             return;
         }
+        if (path.Count == 0)
+        {
+            Debug.LogError("CreatePath() ERROR: path is EMPTY.");
+            return;
+        }
+ 
         if (path.Count > 0)
-       {
+        {    
             int x = 0;
             transform.position = Vector3.MoveTowards(transform.position, new Vector3(path[x].transform.position.x, path[x].transform.position.y, -2), speed * Time.deltaTime);
 
+            Debug.Log("Moving towards at");
             if (Vector2.Distance(transform.position, path[x].transform.position) < 0.1f)
             {
                 currentNode = path[x];
@@ -125,4 +139,18 @@ public class MonkeyController : MonoBehaviour
             Debug.Log("Path has been created");
         }
     }
+
+    private void OnDrawGizmos()
+    {
+        if (path == null || path.Count < 2) return; // No path or not enough points to draw a line
+
+        Gizmos.color = Color.red; // Color for the planned path
+
+        for (int i = 0; i < path.Count - 1; i++)
+        {
+            Gizmos.DrawLine(path[i].transform.position, path[i + 1].transform.position);
+        }
+    }
+
 }
+

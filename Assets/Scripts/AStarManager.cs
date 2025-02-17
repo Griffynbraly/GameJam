@@ -2,6 +2,7 @@ using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class AStarManager : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class AStarManager : MonoBehaviour
     [System.Obsolete]
     public List<Node> GeneratePath(Node start, Node end)
     {
-
+        Debug.Log($"Finding path from {start.name} to {end.name}");
         List<Node> openSet = new List<Node>();
 
         foreach(Node n in FindObjectsOfType<Node>())
@@ -22,6 +23,7 @@ public class AStarManager : MonoBehaviour
             n.gScore = float.MaxValue;
         }
 
+        
         start.gScore = 0;
         start.hScore = Vector2.Distance(start.transform.position, end.transform.position);
         openSet.Add(start);
@@ -54,8 +56,16 @@ public class AStarManager : MonoBehaviour
                 }
 
                 path.Reverse();
-                return path;
+                if (path == null)
+                {
+                    Debug.LogError("Pathfinding failed! No path was returned.");
+                }
+                else
+                {
+                    return path;
+                }
             }
+
 
             foreach (Node connectedNode in currentNode.connections)
             {
@@ -74,6 +84,8 @@ public class AStarManager : MonoBehaviour
                 }
             }
 
+
+
         }
 
         return null;
@@ -81,6 +93,14 @@ public class AStarManager : MonoBehaviour
 
     public Node[] NodesInScene()
     {
-        return FindObjectsByType<Node>(FindObjectsSortMode.None);
+        Node[] nodes = FindObjectsByType<Node>(FindObjectsSortMode.None);
+
+        return nodes;
+    }
+
+    int ExtractNumber(string name)
+    {
+        string numberString = System.Text.RegularExpressions.Regex.Match(name, @"\d+").Value;
+        return int.TryParse(numberString, out int result) ? result : 0;
     }
 }
